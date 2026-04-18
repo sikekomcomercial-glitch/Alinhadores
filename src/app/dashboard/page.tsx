@@ -64,23 +64,25 @@ export default function DashboardDentista() {
            <p className="text-center text-text-secondary mt-10">Nenhum paciente cadastrado.</p>
         )}
         {patients.map((patient) => (
-          <Card key={patient.id} className="hover:border-primary/40 transition-colors cursor-pointer group">
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-lg">
-                  {patient.name.charAt(0)}
-                </div>
-                <div>
-                  <h3 className="font-semibold text-text-primary">{patient.name}</h3>
-                  <div className="flex items-center gap-1.5 text-sm text-text-secondary mt-0.5">
-                    <Calendar size={14} />
-                    <span>Início: {patient.start_date || "Não definido"}</span>
+          <Link href={`/dashboard/paciente/${patient.id}`} key={patient.id} className="block group">
+            <Card className="hover:border-primary/40 transition-colors cursor-pointer">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-lg">
+                    {patient.name.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-text-primary">{patient.name}</h3>
+                    <div className="flex items-center gap-1.5 text-sm text-text-secondary mt-0.5">
+                      <Calendar size={14} />
+                      <span>Início: {patient.start_date || "Não definido"}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <ChevronRight className="text-text-secondary group-hover:text-primary transition-colors" size={20} />
-            </CardContent>
-          </Card>
+                <ChevronRight className="text-text-secondary group-hover:text-primary transition-colors" size={20} />
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>
