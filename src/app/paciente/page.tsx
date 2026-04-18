@@ -27,15 +27,32 @@ export default function DashboardPaciente() {
 
   // Mocks For History and Forms
   const [history] = useState([{id: "1", title: "Lembrete!", message: "Sua próxima troca é amanhã.", date: "Hoje, 10:00"}]);
-  const [pendingForm, setPendingForm] = useState(true);
   const [formAns, setFormAns] = useState("");
 
+  const [patientId, setPatientId] = useState<string>("mock-id");
+
   useEffect(() => {
-    eventService.getEventsByPatient("mock-id").then((res) => {
-      if (res.data) setEvents(res.data);
+    // Pegar o ID real do usuário logado
+    authService.getCurrentUser().then(u => {
+      if (u) {
+        setPatientId(u.id);
+        loadData(u.id);
+      } else {
+        loadData("patient-demo-id"); // Fallback para demo
+      }
     });
+    
     if ('Notification' in window && Notification.permission === 'granted') setPushStatus("Notificações Ativas");
   }, []);
+
+  const loadData = (id: string) => {
+    eventService.getEventsByPatient(id).then((res) => {
+      if (res.data) setEvents(res.data);
+    });
+  };
+
+  const pendingForms = events.filter(e => e.type.startsWith("form_"));
+  const historyEvents = events.filter(e => e.type.startsWith("push_"));
 
   const handleSignOut = async () => {
     await authService.signOut();
@@ -47,13 +64,20 @@ export default function DashboardPaciente() {
         const perm = await Notification.requestPermission();
         if (perm === 'granted') {
            setPushStatus("Registrando...");
-           await pushService.subscribe("mock-id");
+           await pushService.subscribe(patientId);
            setPushStatus("Notificações Ativas");
         }
      }
   };
 
-  const submitForm = () => { if(formAns) { setPendingForm(false); alert("Enviado!"); } };
+  const submitForm = async (eventId: string) => { 
+     if(formAns) { 
+        await eventService.deleteEvent(eventId);
+        setEvents(prev => prev.filter(e => e.id !== eventId));
+        setFormAns("");
+        alert("Resposta enviada com sucesso ao seu dentista!"); 
+     } 
+  };
 
   const triggerSOS = () => {
      setSosActive(true);
@@ -197,32 +221,37 @@ export default function DashboardPaciente() {
                       {pushStatus}
                    </Button>
                 </div>
-                {history.map(item => (
+                {historyEvents.map(item => (
                    <div key={item.id} className="p-4 bg-surface rounded-xl border border-border">
                       <div className="flex justify-between items-start mb-2">
                           <h4 className="font-semibold text-text-primary">{item.title}</h4>
-                          <span className="text-xs text-text-secondary">{item.date}</span>
+                          <span className="text-xs text-text-secondary">{new Date(item.date + "T12:00:00").toLocaleDateString('pt-BR')}</span>
                       </div>
-                      <p className="text-sm text-text-secondary">{item.message}</p>
+                      <p className="text-sm text-text-secondary">Você recebeu um lembrete médico automático via sistema.</p>
                    </div>
                 ))}
+                {historyEvents.length === 0 && (
+                   <div className="text-center py-10 text-text-secondary italic">Nenhum aviso recebido ainda.</div>
+                )}
              </div>
           )}
 
           {activeTab === "forms" && (
              <div className="space-y-4">
-                {pendingForm ? (
-                   <div className="bg-surface border border-border p-5 rounded-2xl">
-                      <h3 className="font-bold text-text-primary text-lg mb-2">Relato Semanal</h3>
-                      <p className="text-sm text-text-secondary mb-4">Seu dentista solicitou um feedback do uso.</p>
-                      <div className="space-y-4">
-                         <div>
-                            <label className="text-sm font-medium text-text-primary block mb-2">Quantas horas por dia usou nesta semana?</label>
-                            <Input placeholder="Ex: 22 horas..." value={formAns} onChange={(e) => setFormAns(e.target.value)} />
+                {pendingForms.length > 0 ? (
+                   pendingForms.map(form => (
+                      <div key={form.id} className="bg-surface border border-border p-5 rounded-2xl">
+                         <h3 className="font-bold text-text-primary text-lg mb-2">{form.title}</h3>
+                         <p className="text-sm text-text-secondary mb-4">Seu dentista solicitou um feedback do uso para este dia.</p>
+                         <div className="space-y-4">
+                            <div>
+                               <label className="text-sm font-medium text-text-primary block mb-2">Qual o seu relato sobre o tratamento?</label>
+                               <Input placeholder="Descreva aqui..." value={formAns} onChange={(e) => setFormAns(e.target.value)} />
+                            </div>
+                            <Button onClick={() => submitForm(form.id)} className="w-full gap-2"><Send size={16}/> Enviar Resposta</Button>
                          </div>
-                         <Button onClick={submitForm} className="w-full gap-2"><Send size={16}/> Enviar Resposta</Button>
                       </div>
-                   </div>
+                   ))
                 ) : (
                    <div className="text-center py-20 space-y-2">
                       <FileText size={32} className="mx-auto text-border" />

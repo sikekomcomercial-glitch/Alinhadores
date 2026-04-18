@@ -52,5 +52,16 @@ export const authService = {
     
     // Por padrão (se não for paciente), assumimos dentista para este MVP
     return "dentist";
+  },
+
+  async getCurrentUser() {
+    const isDemo = document.cookie.includes("next-auth.demo-session=true");
+    if (isDemo) {
+       return { id: "mock-id", email: "paciente@demo.com" };
+    }
+
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
   }
 };

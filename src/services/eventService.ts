@@ -3,7 +3,7 @@ import { createClient } from "./supabaseBrowser";
 export interface CalendarEvent {
   id: string;
   patient_id: string;
-  type: "aligner_change" | "consultation" | "custom";
+  type: "aligner_change" | "consultation" | "custom" | string;
   title: string;
   date: string;
   time?: string;
