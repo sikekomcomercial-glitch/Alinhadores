@@ -1,6 +1,40 @@
+"use client";
+
+import { useState } from "react";
 import { ArrowRight, User, ShieldCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { authService } from "@/services/authService";
+import { Input } from "@/components/ui/Input";
 
 export default function Home() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const { data, error: authError } = await authService.signInWithEmailPassword(email, password);
+
+    if (authError || !data.user) {
+      setError("Credenciais inválidas. Verifique seu e-mail e senha.");
+      setLoading(false);
+      return;
+    }
+
+    const role = await authService.checkUserRole(data.user.id);
+    
+    if (role === "dentist") {
+      router.push("/dashboard");
+    } else {
+      router.push("/paciente");
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-10 bg-background text-text-primary overflow-hidden relative">
       {/* Decoração de fundo */}
@@ -16,25 +50,34 @@ export default function Home() {
             Acompanhamento Premium
           </h1>
           <p className="text-center text-text-secondary">
-            Entre na sua conta para acompanhar seu tratamento com alinhadores.
+            Entre na sua conta para acompanhar o tratamento.
           </p>
         </div>
 
         <div className="bg-surface p-6 sm:p-8 rounded-3xl shadow-xl shadow-primary/5 border border-border">
-          <form className="space-y-5">
+          {error && (
+             <div className="mb-4 text-center text-sm font-medium p-3 bg-red-50 text-red-600 rounded-lg">
+                {error}
+             </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <label className="text-sm font-medium text-text-primary" htmlFor="email">
                 E-mail ou Usuário
               </label>
               <div className="relative">
-                <input
+                <Input
                   id="email"
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Seu email cadastrado"
-                  className="w-full pl-11 pr-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition duration-200"
+                  className="pl-11"
+                  required
                 />
                 <User
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary placeholder-icon"
                   size={18}
                 />
               </div>
@@ -49,27 +92,26 @@ export default function Home() {
                   Esqueceu a senha?
                 </a>
               </div>
-              <input
+              <Input
                 id="password"
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="********"
-                className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition duration-200"
+                required
               />
             </div>
 
             <button
-              type="button"
-              className="w-full mt-2 bg-text-primary text-white font-medium py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-black transition-all active:scale-[0.98] group"
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 bg-text-primary text-white font-medium py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-black transition-all active:scale-[0.98] disabled:opacity-50 group"
             >
-              Entrar na conta
+              {loading ? "Entrando..." : "Entrar na conta"}
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
         </div>
-
-        <p className="text-center text-sm text-text-secondary mt-8">
-          Pacientes recebem o acesso diretamente com o dentista responsável.
-        </p>
       </main>
     </div>
   );

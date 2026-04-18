@@ -1,0 +1,16 @@
+{
+  "name": "Alinhadores App",
+  "short_name": "Alinhadores",
+  "description": "Aplicativo premium para acompanhamento de tratamento com alinhadores invisíveis.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#A8C5DA",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}

@@ -10,6 +10,8 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Acompanhamento de Alinhadores",
   description: "Plataforma premium para acompanhamento de pacientes com alinhadores invisíveis.",
+  manifest: "/manifest.json",
+  themeColor: "#A8C5DA",
 };
 
 export default function RootLayout({
