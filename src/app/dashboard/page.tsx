@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { UserPlus, Search, Calendar, ChevronRight, LogOut, Bell, FileText } from "lucide-react";
+import { UserPlus, Search, Calendar, ChevronRight, LogOut, Bell, FileText, Settings } from "lucide-react";
 import { authService } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -39,6 +39,11 @@ export default function DashboardDentista() {
         </div>
         
         <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+          <Link href="/dashboard/settings">
+             <Button variant="ghost" size="sm" className="gap-2 whitespace-nowrap">
+               <Settings size={16} /> <span className="hidden md:inline">Configurações</span>
+             </Button>
+          </Link>
           <Link href="/dashboard/envio">
              <Button variant="outline" size="sm" className="gap-2 whitespace-nowrap">
                <Bell size={16} /> <span className="hidden md:inline">Disparos</span>

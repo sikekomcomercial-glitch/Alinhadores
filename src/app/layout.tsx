@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   themeColor: "#A8C5DA",
 };
 
+import { ThemeProvider } from "@/components/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,7 +24,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} antialiased h-full`}>
       <body className="min-h-full flex flex-col bg-background text-text-primary">
-        {children}
+         <ThemeProvider>
+            {children}
+         </ThemeProvider>
       </body>
     </html>
   );
