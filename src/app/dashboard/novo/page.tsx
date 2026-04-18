@@ -78,7 +78,7 @@ export default function NovoPaciente() {
           <div className="space-y-4 bg-surface p-6 rounded-3xl border border-border shadow-sm">
             <h2 className="text-lg font-semibold text-text-primary mb-2">Tratamento</h2>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-text-primary block mb-1">Início</label>
                 <Input type="date" {...register("start_date")} error={errors.start_date?.message} />
@@ -88,11 +88,22 @@ export default function NovoPaciente() {
                 <Input type="date" {...register("end_date")} error={errors.end_date?.message} />
               </div>
             </div>
+
+            <div>
+               <label className="text-sm font-medium text-text-primary block mb-1">Criação Automática do Calendário (Protocolo)</label>
+               <select {...register("protocol", { valueAsNumber: true })} className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:outline-none text-text-primary">
+                  <option value={0}>Manual (Criarei as trocas 1 a 1)</option>
+                  <option value={7}>Protocolo Intenso (Trocas a cada 7 dias)</option>
+                  <option value={10}>Protocolo Padrão (Trocas a cada 10 dias)</option>
+                  <option value={14}>Protocolo Conservador (Trocas a cada 14 dias)</option>
+               </select>
+               <p className="text-xs text-text-secondary mt-1">Isso vai empilhar automaticamente 20 trocas no calendário a partir da data de início.</p>
+            </div>
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full gap-2">
-            <Save size={18} />
-            {isSubmitting ? "Salvando..." : "Salvar Paciente"}
+          <Button type="submit" disabled={isSubmitting} className="w-full py-6 text-lg font-bold gap-2 shadow-lg">
+            <Save size={20} />
+            {isSubmitting ? "Cadastrando e Gerando..." : "Cadastrar Paciente"}
           </Button>
         </form>
       </main>
