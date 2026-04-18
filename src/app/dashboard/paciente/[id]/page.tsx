@@ -96,14 +96,23 @@ export default function PacienteDetalhes() {
               </div>
               
               {/* Event Form */}
-              <form onSubmit={handleAddEvent} className="bg-surface p-4 rounded-xl border border-border shadow-sm flex flex-col sm:flex-row gap-3">
-                 <Input name="title" placeholder="Nome do Evento (ex: Placa 02)" required className="flex-1" />
-                 <select name="type" className="bg-background border border-border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none">
-                    <option value="aligner_change">Trocar Alinhador</option>
-                    <option value="consultation">Consulta</option>
-                 </select>
-                 <Input name="date" type="date" required className="w-full sm:w-auto" />
-                 <Button type="submit" size="sm"><Plus size={16}/></Button>
+              <form onSubmit={handleAddEvent} className="bg-surface p-5 rounded-xl border border-border shadow-sm flex flex-col gap-3">
+                 <h3 className="font-semibold text-text-primary text-sm mb-2">Agendar Nova Ação</h3>
+                 <div className="flex flex-col sm:flex-row gap-3">
+                    <Input name="title" placeholder="Descreva (ex: Lembrete Placa 02)" required className="flex-1" />
+                    <select name="type" className="bg-background border border-border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none flex-1">
+                       <option value="aligner_change">Disparar Modelo: Trocar Alinhador</option>
+                       <option value="consultation">Disparar Modelo: Consulta</option>
+                       <option value="form">Disparar Modelo: Formulário de Pesquisa</option>
+                    </select>
+                 </div>
+                 <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                    <div className="flex-1 flex gap-3">
+                       <Input name="date" type="date" required className="w-full" />
+                       <Input name="time" type="time" defaultValue="10:00" className="w-full" />
+                    </div>
+                    <Button type="submit" size="md" className="w-full sm:w-auto px-8"><Plus size={18} className="mr-2"/> Agendar</Button>
+                 </div>
               </form>
 
               {/* Event List */}

@@ -25,3 +25,11 @@ body {
   background: var(--background);
   color: var(--text-primary);
 }
+
+/* Ocultar indicadores forçadamente */
+nextjs-portal, 
+[data-nextjs-toast], 
+[data-nextjs-dialog-overlay] {
+  display: none !important;
+  visibility: hidden !important;
+}

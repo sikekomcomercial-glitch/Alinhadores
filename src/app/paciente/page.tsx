@@ -129,28 +129,39 @@ export default function DashboardPaciente() {
                  </CardContent>
               </Card>
 
-              <h2 className="text-lg font-bold text-text-primary mb-4 pt-4 border-t border-border mt-4">Próximos Passos</h2>
+              <h2 className="text-lg font-bold text-text-primary mb-4 pt-4 border-t border-border mt-4">Neste Mês</h2>
               
-              {events.length === 0 && <p className="text-center text-text-secondary pt-10">Você não tem nada agendado.</p>}
-              
-              {events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map((evt, idx) => (
-                 <div key={evt.id} className="relative flex gap-4 pb-6">
-                    <div className="flex flex-col items-center">
-                       <div className={`w-4 h-4 rounded-full border-4 z-10 ${idx === 0 ? "border-primary bg-background" : "border-border bg-background"}`} />
-                       {idx !== events.length - 1 && <div className="w-0.5 h-full bg-border absolute top-4" />}
-                    </div>
-                    
-                    <div className={`flex-1 bg-surface p-4 rounded-2xl border ${idx === 0 ? "border-primary/40 shadow-sm" : "border-border"} transition-colors`}>
-                       <span className="text-xs font-bold text-primary uppercase tracking-wider mb-1 block">
-                          {evt.type === 'aligner_change' ? "Trocar Alinhador" : "Ir ao Consultório"}
-                       </span>
-                       <h3 className="font-semibold text-text-primary mb-2">{evt.title}</h3>
-                       <div className="inline-block text-text-secondary font-medium bg-background px-3 py-1 rounded-lg border border-border text-sm">
-                          Data: {new Date(evt.date + "T12:00:00").toLocaleDateString('pt-BR')}
-                       </div>
-                    </div>
+              <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
+                 <div className="grid grid-cols-7 border-b border-border bg-background/50">
+                    {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day => (
+                       <div key={day} className="py-3 text-center text-xs font-bold text-text-secondary uppercase tracking-wider">{day}</div>
+                    ))}
                  </div>
-              ))}
+                 <div className="grid grid-cols-7">
+                    {Array(new Date(new Date().getFullYear(), new Date().getMonth(), 1).getDay()).fill(null).map((_, i) => (
+                       <div key={`blank-${i}`} className="min-h-[100px] border-r border-b border-border/50 bg-background/30 p-2" />
+                    ))}
+                    {Array.from({length: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()}).map((_, i) => {
+                       const d = i + 1;
+                       const dateStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                       const dayEvents = events.filter(e => e.date === dateStr);
+                       const isToday = d === new Date().getDate();
+                       
+                       return (
+                          <div key={d} className={`min-h-[100px] border-r border-b border-border/50 p-2 flex flex-col gap-1 transition-colors hover:bg-primary/5 ${isToday ? "bg-primary/5" : ""}`}>
+                             <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? "bg-primary text-white shadow-md" : "text-text-secondary"}`}>
+                                {d}
+                             </div>
+                             {dayEvents.map(evt => (
+                                <div key={evt.id} className="text-[10px] sm:text-xs font-semibold bg-primary text-white px-1.5 py-1 rounded truncate shadow-sm mt-1 border border-primary/20">
+                                   {evt.title}
+                                </div>
+                             ))}
+                          </div>
+                       )
+                    })}
+                 </div>
+              </div>
             </div>
           )}
 
