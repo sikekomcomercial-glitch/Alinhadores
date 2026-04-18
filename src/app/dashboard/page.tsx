@@ -1,26 +1,48 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { UserPlus, Search, Calendar, ChevronRight } from "lucide-react";
+import { UserPlus, Search, Calendar, ChevronRight, LogOut } from "lucide-react";
+import { authService } from "@/services/authService";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { patientService, Patient } from "@/services/patientService";
 
 export default function DashboardDentista() {
-  // Mock patients for UI testing - later will be fetched from Supabase
-  const patientsMock = [
-    { id: "1", name: "João Silva", nextEvent: "Troca - 15/01/2026", status: "Em dia" },
-    { id: "2", name: "Maria Souza", nextEvent: "Consulta - 20/01/2026", status: "Atenção" },
-  ];
+  const router = useRouter();
+  const [patients, setPatients] = useState<Patient[]>([]);
+
+  useEffect(() => {
+    patientService.getPatients().then((res) => {
+       if (res.data) setPatients(res.data);
+    });
+  }, []);
+
+  const handleSignOut = async () => {
+    await authService.signOut();
+    router.push("/");
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header Premium Mobile-First */}
       <header className="bg-surface border-b border-border p-6 sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-text-primary">Dra. Ana (Dashboard)</h1>
-            <p className="text-sm text-text-secondary">Seus pacientes</p>
+          <div className="flex items-center gap-4">
+             <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-text-secondary">
+               <LogOut size={18} />
+             </Button>
+             <div>
+               <h1 className="text-xl font-bold text-text-primary">Dra. Ana (Dashboard)</h1>
+               <p className="text-sm text-text-secondary">Seus pacientes</p>
+             </div>
           </div>
-          <Button size="sm" className="gap-2">
-            <UserPlus size={16} /> <span className="hidden sm:inline">Novo</span>
-          </Button>
+          <Link href="/dashboard/novo">
+             <Button size="sm" className="gap-2">
+               <UserPlus size={16} /> <span className="hidden sm:inline">Novo</span>
+             </Button>
+          </Link>
         </div>
       </header>
 
@@ -38,7 +60,10 @@ export default function DashboardDentista() {
 
       {/* Lista de Pacientes (Cards) */}
       <div className="p-6 space-y-4 flex-1">
-        {patientsMock.map((patient) => (
+        {patients.length === 0 && (
+           <p className="text-center text-text-secondary mt-10">Nenhum paciente cadastrado.</p>
+        )}
+        {patients.map((patient) => (
           <Card key={patient.id} className="hover:border-primary/40 transition-colors cursor-pointer group">
             <CardContent className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -49,7 +74,7 @@ export default function DashboardDentista() {
                   <h3 className="font-semibold text-text-primary">{patient.name}</h3>
                   <div className="flex items-center gap-1.5 text-sm text-text-secondary mt-0.5">
                     <Calendar size={14} />
-                    <span>{patient.nextEvent}</span>
+                    <span>Início: {patient.start_date || "Não definido"}</span>
                   </div>
                 </div>
               </div>
