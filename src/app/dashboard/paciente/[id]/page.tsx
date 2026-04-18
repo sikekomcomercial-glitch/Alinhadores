@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { patientService, Patient } from "@/services/patientService";
 import { eventService, CalendarEvent } from "@/services/eventService";
+import { templateService } from "@/services/templateService";
 import { Button } from "@/components/ui/Button";
-import { ArrowLeft, User as UserIcon, Calendar, Bell, FileText, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Calendar as CalendarIcon, Bell, FileText, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 
@@ -14,7 +15,13 @@ export default function PacienteDetalhes() {
   const router = useRouter();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [templates, setTemplates] = useState<{id: string, title: string, type: string}[]>([]);
   const [activeTab, setActiveTab] = useState<"calendar" | "history" | "forms">("calendar");
+
+  // Interactive Calendar Stating
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDateStr, setSelectedDateStr] = useState<string>("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Load patient data
   useEffect(() => {
@@ -27,7 +34,37 @@ export default function PacienteDetalhes() {
     eventService.getEventsByPatient(id as string).then((res) => {
       if (res.data) setEvents(res.data);
     });
+
+    Promise.all([templateService.getPushTemplates(), templateService.getFormTemplates()]).then(([pRes, fRes]) => {
+      const merged = [
+         ...(pRes.data || []).map(t => ({ id: "push_" + t.id, title: `Push: ${t.title}`, type: "notification" })),
+         ...(fRes.data || []).map(t => ({ id: "form_" + t.id, title: `Form: ${t.title}`, type: "form" }))
+      ];
+      setTemplates(merged);
+    });
   }, [id]);
+
+  const handleDaySelect = (dayDateStr: string) => {
+     setSelectedDateStr(dayDateStr);
+     if (formRef.current) {
+        const inputDate = formRef.current.querySelector('input[name="date"]') as HTMLInputElement;
+        if (inputDate) inputDate.value = dayDateStr;
+        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+     }
+  };
+
+  // Bidirectional link: Sync Calendar view to typed date
+  useEffect(() => {
+     if (selectedDateStr) {
+        const [y, m] = selectedDateStr.split('-');
+        if (y && m) {
+           const newDate = new Date(parseInt(y), parseInt(m) - 1, 1);
+           if (newDate.getMonth() !== currentDate.getMonth() || newDate.getFullYear() !== currentDate.getFullYear()) {
+              setCurrentDate(newDate);
+           }
+        }
+     }
+  }, [selectedDateStr]);
 
   const handleAddEvent = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -91,44 +128,91 @@ export default function PacienteDetalhes() {
             </Card>
 
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                 <h2 className="text-lg font-bold text-text-primary">Cronograma de Eventos</h2>
-              </div>
-              
-              {/* Event Form */}
-              <form onSubmit={handleAddEvent} className="bg-surface p-5 rounded-xl border border-border shadow-sm flex flex-col gap-3">
-                 <h3 className="font-semibold text-text-primary text-sm mb-2">Agendar Nova Ação</h3>
-                 <div className="flex flex-col sm:flex-row gap-3">
-                    <Input name="title" placeholder="Descreva (ex: Lembrete Placa 02)" required className="flex-1" />
-                    <select name="type" className="bg-background border border-border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none flex-1">
-                       <option value="aligner_change">Disparar Modelo: Trocar Alinhador</option>
-                       <option value="consultation">Disparar Modelo: Consulta</option>
-                       <option value="form">Disparar Modelo: Formulário de Pesquisa</option>
-                    </select>
+              <h2 className="text-lg font-bold text-text-primary">Visão do Calendário</h2>
+              <Card>
+                 <div className="flex justify-between items-center p-4 border-b border-border bg-surface rounded-t-xl">
+                    <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}>
+                       <ChevronLeft size={20} />
+                    </Button>
+                    <h3 className="font-bold text-text-primary uppercase tracking-wider text-sm">
+                       {currentDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+                    </h3>
+                    <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}>
+                       <ChevronRight size={20} />
+                    </Button>
                  </div>
-                 <div className="flex flex-col sm:flex-row gap-3 mt-2">
-                    <div className="flex-1 flex gap-3">
-                       <Input name="date" type="date" required className="w-full" />
-                       <Input name="time" type="time" defaultValue="10:00" className="w-full" />
-                    </div>
-                    <Button type="submit" size="md" className="w-full sm:w-auto px-8"><Plus size={18} className="mr-2"/> Agendar</Button>
+                 
+                 <div className="grid grid-cols-7 border-b border-border bg-background/50">
+                    {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day => (
+                       <div key={day} className="py-2 text-center text-[10px] font-bold text-text-secondary uppercase">{day}</div>
+                    ))}
                  </div>
-              </form>
+                 <div className="grid grid-cols-7">
+                    {Array(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()).fill(null).map((_, i) => (
+                       <div key={`blank-${i}`} className="min-h-[80px] border-r border-b border-border/50 bg-background/30 p-1" />
+                    ))}
+                    {Array.from({length: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()}).map((_, i) => {
+                       const d = i + 1;
+                       const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                       const dayEvents = events.filter(e => e.date === dateStr);
+                       const isSelected = selectedDateStr === dateStr;
+                       
+                       return (
+                          <div 
+                             key={d} 
+                             onClick={() => handleDaySelect(dateStr)}
+                             className={`min-h-[80px] border-r border-b border-border/50 p-1 flex flex-col gap-1 cursor-pointer transition-colors ${isSelected ? "ring-2 ring-primary ring-inset bg-primary/5" : "hover:bg-primary/5"}`}
+                          >
+                             <div className={`text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full ${isSelected ? "bg-primary text-white" : "text-text-secondary"}`}>
+                                {d}
+                             </div>
+                             {dayEvents.map(evt => (
+                                <div key={evt.id} title={evt.title} className="text-[9px] font-semibold bg-primary text-white px-1 py-0.5 rounded truncate shadow-sm">
+                                   {evt.title}
+                                </div>
+                             ))}
+                          </div>
+                       )
+                    })}
+                 </div>
+              </Card>
 
-              {/* Event List */}
-              <div className="space-y-3">
-                {events.length === 0 && <p className="text-center text-text-secondary pt-4">Nenhum evento agendado.</p>}
+              {/* Event Form */}
+              <div ref={formRef} className="pt-2">
+                 <form onSubmit={handleAddEvent} className="bg-surface p-5 rounded-xl border border-border shadow-sm flex flex-col gap-3">
+                    <h3 className="font-semibold text-text-primary text-sm mb-2">Agendar Disparo (Ação)</h3>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                       <Input name="title" placeholder="Descreva (ex: Lembrete Placa 02)" required className="flex-1" />
+                       <select name="type" className="bg-background border border-border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:outline-none flex-1">
+                          {templates.length === 0 && <option value="custom">Agendamento Manual (Sem Modelo)</option>}
+                          {templates.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+                       </select>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                       <div className="flex-1 flex gap-3">
+                          <Input name="date" type="date" required className="w-full" onChange={(e) => setSelectedDateStr(e.target.value)} />
+                          <Input name="time" type="time" defaultValue="10:00" className="w-full" />
+                       </div>
+                       <Button type="submit" size="md" className="w-full sm:w-auto px-8"><Plus size={18} className="mr-2"/> Agendar</Button>
+                    </div>
+                 </form>
+              </div>
+
+              {/* Lembretes List */}
+              <div className="space-y-3 pt-4">
+                <h3 className="text-sm font-semibold text-text-secondary">Próximos na Fila:</h3>
+                {events.length === 0 && <p className="text-center text-text-secondary pt-2">Vazio.</p>}
                 {events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(evt => (
                    <div key={evt.id} className="flex flex-col sm:flex-row sm:items-center justify-between bg-surface p-4 rounded-xl border border-border shadow-sm gap-4">
                       <div>
-                         <span className="text-xs font-bold text-primary uppercase tracking-wider mb-1 block">
-                            {evt.type === 'aligner_change' ? "Troca de Alinhador" : "Consulta Presencial"}
+                         <span className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1 block">
+                            {evt.type.startsWith('push_') ? "Notificação Push" : evt.type.startsWith('form_') ? "Formulário" : "Agendamento"}
                          </span>
                          <h4 className="font-semibold text-text-primary">{evt.title}</h4>
                       </div>
                       <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
                          <div className="text-text-secondary font-medium bg-background px-3 py-1 rounded-lg border border-border text-sm">
-                            {new Date(evt.date + "T12:00:00").toLocaleDateString('pt-BR')}
+                            {new Date(evt.date + "T12:00:00").toLocaleDateString('pt-BR')} {evt.time ? `às ${evt.time}` : ""}
                          </div>
                          <Button type="button" variant="ghost" size="sm" onClick={() => handleDeleteEvent(evt.id)} className="text-red-500 hover:bg-red-50">
                             <Trash2 size={16}/>

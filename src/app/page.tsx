@@ -105,10 +105,10 @@ export default function Home() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 bg-text-primary text-white font-medium py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:bg-black transition-all active:scale-[0.98] disabled:opacity-50 group"
+              className="w-full mt-2 bg-primary text-white font-medium py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:brightness-105 hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-50 group shadow-md shadow-primary/10"
             >
-              {loading ? "Entrando..." : "Entrar na conta"}
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+               {loading ? "Entrando..." : "Entrar na conta"}
+               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
         </div>
