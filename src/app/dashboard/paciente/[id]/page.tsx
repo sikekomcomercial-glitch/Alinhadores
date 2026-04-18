@@ -105,7 +105,7 @@ export default function PacienteDetalhes() {
       {/* Tabs */}
       <div className="flex overflow-x-auto border-b border-border bg-surface px-6">
         <button onClick={() => setActiveTab("calendar")} className={`px-4 py-4 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "calendar" ? "border-primary text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}>
-          <div className="flex items-center gap-2"><Calendar size={16}/> Calendário</div>
+          <div className="flex items-center gap-2"><CalendarIcon size={16}/> Calendário</div>
         </button>
         <button onClick={() => setActiveTab("history")} className={`px-4 py-4 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "history" ? "border-primary text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}>
           <div className="flex items-center gap-2"><Bell size={16}/> Push Enviados</div>

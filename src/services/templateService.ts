@@ -13,7 +13,7 @@ export interface FormTemplate {
 }
 
 export const templateService = {
-  async getNotificationTemplates() {
+  async getPushTemplates() {
     return {
       data: [
          { id: "n1", title: "Lembrete Troca 3 Dias", message: "Faltam 3 dias para você trocar de alinhador!" },

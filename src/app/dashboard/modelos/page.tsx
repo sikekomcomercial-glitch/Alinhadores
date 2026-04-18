@@ -15,7 +15,7 @@ export default function GestaoModelos() {
   const [formTemplates, setFormTemplates] = useState<FormTemplate[]>([]);
 
   useEffect(() => {
-    templateService.getNotificationTemplates().then(res => setNotifTemplates(res.data));
+    templateService.getPushTemplates().then(res => setNotifTemplates(res.data));
     templateService.getFormTemplates().then(res => setFormTemplates(res.data));
   }, []);
 

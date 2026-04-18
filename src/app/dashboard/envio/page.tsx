@@ -23,8 +23,10 @@ export default function EnviosEmMassa() {
 
   useEffect(() => {
     patientService.getPatients().then(res => { if(res.data) setPatients(res.data); });
-    templateService.getNotificationTemplates().then(res => setNotifTemplates(res.data));
-    templateService.getFormTemplates().then(res => setFormTemplates(res.data));
+    Promise.all([templateService.getPushTemplates(), templateService.getFormTemplates()]).then(([nRes, fRes]) => {
+      setNotifTemplates(nRes.data);
+      setFormTemplates(fRes.data);
+    });
   }, []);
 
   const togglePatient = (id: string) => {
